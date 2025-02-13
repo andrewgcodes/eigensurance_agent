@@ -1,9 +1,9 @@
-import { createAgent } from './agent/createAgent';
+import { createAgent } from './agent/createAgent.js';
 
 async function main() {
   try {
     console.log('🤖 Initializing AI Agent...');
-    const agent = createAgent();
+    const agent = await createAgent();
 
     // Example 1: Generate verifiable text
     console.log('\n📝 Generating verifiable text...');

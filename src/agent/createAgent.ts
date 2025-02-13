@@ -13,6 +13,7 @@ export interface VerifiableResponse {
 export interface LocationVerification {
   isValid: boolean;
   proof: any;
+  photos?: string[];
 }
 
 export class Agent {
@@ -23,28 +24,46 @@ export class Agent {
   constructor() {
     // Initialize Opacity adapter for verifiable AI inference
     this.opacity = new OpacityAdapter({
-      apiKey: process.env.OPACITY_API_KEY!,
+      apiKey: process.env.OPENAI_API_KEY!,
       teamId: process.env.OPACITY_TEAM_ID!,
       teamName: process.env.OPACITY_TEAM_NAME!,
-      proverUrl: process.env.OPACITY_PROVER_URL!,
+      opacityProverUrl: process.env.OPACITY_PROVER_URL!,
     });
 
     // Initialize EigenDA adapter for data availability logging
     this.eigenDA = new EigenDAAdapter({
       privateKey: process.env.EIGENDA_PRIVATE_KEY!,
       apiUrl: process.env.EIGENDA_API_URL!,
-      baseRpcUrl: process.env.EIGENDA_BASE_RPC_URL!,
-      creditsContract: process.env.EIGENDA_CREDITS_CONTRACT!,
-      flushIntervalMs: 5000, // Flush logs every 5 seconds
+      rpcUrl: process.env.EIGENDA_BASE_RPC_URL!,
+      creditsContractAddress: process.env.EIGENDA_CREDITS_CONTRACT!,
+      flushInterval: 5000, // Flush logs every 5 seconds
       maxBufferSize: 100, // Maximum number of logs to buffer
     });
 
     // Initialize Witnesschain adapter for location verification
-    this.witnesschain = new WitnesschainAdapter({
-      apiKey: process.env.WITNESSCHAIN_API_KEY!,
-      apiUrl: process.env.WITNESSCHAIN_API_URL!,
-      privateKey: process.env.WITNESSCHAIN_PRIVATE_KEY!,
-    });
+    this.witnesschain = new WitnesschainAdapter(
+      process.env.WITNESSCHAIN_PHOTO_API,
+      process.env.WITNESSCHAIN_BLOCKCHAIN_API,
+      process.env.WITNESSCHAIN_PRIVATE_KEY
+    );
+  }
+
+  /**
+   * Initialize all adapters
+   */
+  async initialize() {
+    try {
+      console.log('Initializing Opacity adapter...');
+      await this.opacity.initialize();
+
+      console.log('Initializing EigenDA adapter...');
+      await this.eigenDA.initialize();
+
+      console.log('All adapters initialized successfully');
+    } catch (error) {
+      console.error('Error initializing adapters:', error);
+      throw error;
+    }
   }
 
   /**
@@ -52,8 +71,10 @@ export class Agent {
    */
   async generateVerifiableText(prompt: string): Promise<VerifiableResponse> {
     try {
+      console.log('Generating text with prompt:', prompt);
       // Generate text with proof using Opacity
       const result = await this.opacity.generateText(prompt);
+      console.log('Generated result:', result);
       
       // Log the generation to EigenDA
       await this.eigenDA.info('Text Generation', {
@@ -64,6 +85,7 @@ export class Agent {
 
       return result;
     } catch (error) {
+      console.error('Error in generateVerifiableText:', error);
       await this.eigenDA.error('Text Generation Failed', { prompt, error });
       throw error;
     }
@@ -72,18 +94,34 @@ export class Agent {
   /**
    * Verify location using Witnesschain and log to EigenDA
    */
-  async verifyLocation(latitude: number, longitude: number): Promise<LocationVerification> {
+  async verifyLocation(latitude: number, longitude: number, photos?: string[]): Promise<LocationVerification> {
     try {
-      // Verify location using Witnesschain
-      const verification = await this.witnesschain.verifyLocation(latitude, longitude);
+      // First authenticate with the location
+      const isAuthenticated = await this.witnesschain.authenticate(latitude, longitude);
       
+      if (!isAuthenticated) {
+        throw new Error('Location authentication failed');
+      }
+
+      // TODO: Photo verification is temporarily disabled
+      // let photoVerification: boolean | null = null;
+      // if (photos && photos.length > 0) {
+      //   const verificationResponse = await this.witnesschain.verifyPhotos(photos, 'Location verification photos');
+      //   photoVerification = verificationResponse !== null;
+      // }
+
       // Log the verification to EigenDA
       await this.eigenDA.info('Location Verification', {
         coordinates: { latitude, longitude },
-        verification,
+        isAuthenticated,
+        // photoVerification
       });
 
-      return verification;
+      return {
+        isValid: isAuthenticated,
+        proof: null, // Witnesschain doesn't return a proof object directly
+        // photos: photos
+      };
     } catch (error) {
       await this.eigenDA.error('Location Verification Failed', {
         coordinates: { latitude, longitude },
@@ -91,6 +129,59 @@ export class Agent {
       });
       throw error;
     }
+  }
+
+  /**
+   * Create a new campaign on Witnesschain
+   */
+  async createCampaign(params: {
+    campaign: string;
+    description: string;
+    type: 'individual' | 'group' | 'task';
+    latitude?: number;
+    longitude?: number;
+    radius?: number;
+    bannerUrl?: string;
+    posterUrl?: string;
+    currency?: string;
+    totalRewards?: number;
+    rewardPerTask?: number;
+    fuelRequired?: number;
+    maxSubmissions?: number;
+    isActive?: boolean;
+    tags?: string[];
+  }) {
+    try {
+      const result = await this.witnesschain.createCampaign({
+        ...params,
+        starts_at: new Date().toISOString(),
+        ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+      });
+
+      await this.eigenDA.info('Campaign Created', {
+        campaign: params.campaign,
+        result
+      });
+
+      return result;
+    } catch (error) {
+      await this.eigenDA.error('Campaign Creation Failed', { params, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get photos from a campaign
+   */
+  async getCampaignPhotos(campaign: string, since: string | null) {
+    return this.witnesschain.getCampaignPhotos(campaign, since);
+  }
+
+  /**
+   * Accept a photo submission
+   */
+  async acceptPhoto(photoId: string) {
+    return this.witnesschain.acceptPhoto(photoId);
   }
 
   /**
@@ -102,6 +193,8 @@ export class Agent {
 }
 
 // Export a factory function to create new agent instances
-export const createAgent = (): Agent => {
-  return new Agent();
+export const createAgent = async (): Promise<Agent> => {
+  const agent = new Agent();
+  await agent.initialize();
+  return agent;
 }; 
