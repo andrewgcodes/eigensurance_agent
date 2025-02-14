@@ -2,12 +2,17 @@
 import * as wc from '@layr-labs/agentkit-witnesschain';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 // @ts-ignore
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 
 // Load environment variables from .env file
 dotenv.config();
+
+// Set up __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Verify required environment variables are present
 if (!process.env.WITNESSCHAIN_PHOTO_API || !process.env.WITNESSCHAIN_BLOCKCHAIN_API || !process.env.WITNESSCHAIN_PRIVATE_KEY) {
@@ -54,9 +59,56 @@ async function downloadImage(url: string, filepath: string): Promise<void> {
   });
 }
 
+async function processPhoto(photoId: string, photoUrl: string): Promise<boolean> {
+  const filepath = path.join(__dirname, `photo_${photoId}.jpg`);
+  try {
+    // Download the image
+    log('info', `Downloading photo to ${filepath}`);
+    await downloadImage(photoUrl, filepath);
+
+    // Wait a bit to ensure file is fully written
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Verify file exists and is readable
+    const stats = await fs.promises.stat(filepath);
+    log('info', `File downloaded, size: ${stats.size} bytes`);
+
+    try {
+      // Try to verify the photo
+      log('info', 'Attempting to classify photo');
+      const verified = await witnesschain_client.acceptPhoto(photoId);
+      log('info', `Classification result: ${verified}`);
+      
+      return true;
+    } catch (error: any) {
+      log('error', 'Classification error', {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      return false;
+    } finally {
+      // Clean up in finally block to ensure it happens
+      try {
+        await fs.promises.unlink(filepath);
+        log('info', 'Cleaned up temporary file');
+      } catch (unlinkError) {
+        log('error', 'Failed to clean up file', unlinkError);
+      }
+    }
+  } catch (error) {
+    log('error', `Failed to process photo ${photoId}`, error);
+    // Try to clean up if file exists
+    try {
+      await fs.promises.unlink(filepath);
+    } catch {} // Ignore cleanup errors in error path
+    return false;
+  }
+}
+
 const LATITUDE		= 37.441023;  // Stanford University latitude
 const LONGITUDE		= -122.12686; // Stanford University longitude
-const MY_CAMPAIGN	= "TreeHacks 2025 - Gaj";
+const MY_CAMPAIGN	= "TreeHacks 2025 - EigenLayer";
 
 async function main()
 {
@@ -180,19 +232,20 @@ async function main()
 					url: p.photo_url
 				});
 
-				// Classify p.photo_url
-
-				const filepath = path.join(__dirname, `photo_${p.id}.jpg`);
-				await downloadImage(p.photo_url, filepath);
-				const verified = await witnesschain_client.classifyPhotos([filepath], 'Photo verification task');
-				if (verified)
-				{
-					log('success', 'Photo verified and accepted', p.id);
-					await witnesschain_client.acceptPhoto(p.id);
+				try {
+					const verified = await processPhoto(p.id, p.photo_url);
+					if (verified)
+					{
+						log('success', 'Photo verified and accepted', p.id);
+						await witnesschain_client.acceptPhoto(p.id);
+					}
+					else
+					{
+						log('error', 'Photo verification failed', p.id);
+					}
 				}
-				else
-				{
-					log('error', 'Photo verification failed', p.id);
+				catch (error) {
+					log('error', `Error processing photo ${p.id}`, error);
 				}
 
 				analyzed_photos[p.id] = true;
