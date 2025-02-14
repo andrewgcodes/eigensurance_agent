@@ -54,35 +54,10 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// Verify location endpoint
-app.post('/api/verify-location', async (req, res) => {
-  try {
-    if (!agent) {
-      return res.status(503).json({ error: 'Agent not ready' });
-    }
-
-    const { latitude, longitude } = req.body;
-    
-    if (!latitude || !longitude) {
-      return res.status(400).json({ error: 'Latitude and longitude are required' });
-    }
-
-    const result = await agent.verifyLocation(latitude, longitude);
-    res.json(result);
-  } catch (error) {
-    console.error('Error verifying location:', error);
-    res.status(500).json({ 
-      error: 'Failed to verify location',
-      details: error instanceof Error ? error.message : String(error)
-    });
-  }
-});
-
 // Start server
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
   console.log('Available endpoints:');
   console.log('  GET  /health');
   console.log('  POST /api/generate');
-  console.log('  POST /api/verify-location');
 }); 

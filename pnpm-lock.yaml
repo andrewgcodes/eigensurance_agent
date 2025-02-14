@@ -9,17 +9,17 @@ importers:
   .:
     dependencies:
       '@layr-labs/agentkit':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: latest
+        version: 0.1.1
       '@layr-labs/agentkit-eigenda':
-        specifier: ^0.1.0
-        version: 0.1.0(@layr-labs/agentkit@0.1.0)
+        specifier: latest
+        version: 0.1.1(@layr-labs/agentkit@0.1.1)
       '@layr-labs/agentkit-opacity':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: latest
+        version: 0.1.1
       '@layr-labs/agentkit-witnesschain':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: latest
+        version: 0.1.1
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -27,7 +27,7 @@ importers:
         specifier: ^16.4.5
         version: 16.4.7
       eigenda-sdk:
-        specifier: ^0.1.0
+        specifier: latest
         version: 0.1.0
       express:
         specifier: ^4.18.3
@@ -241,19 +241,19 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@layr-labs/agentkit-eigenda@0.1.0':
-    resolution: {integrity: sha512-jvYzZ93o8TAJyLS7cXTefr05GrPq/luUspSoqOI8YFfpIr2PkcFUqfHeBcm3uV8TI/tq94st1IEXsECOaC4jhw==}
+  '@layr-labs/agentkit-eigenda@0.1.1':
+    resolution: {integrity: sha512-AAAJnkK4+j88m4UM2GXvjmw9+/tTfuEcf3kDqVR3zfhsgogtjIZidBVZxUj+fj0CpeVkbMpGGaeqNT5swELROg==}
     peerDependencies:
-      '@layr-labs/agentkit': 0.1.0
+      '@layr-labs/agentkit': 0.1.1
 
-  '@layr-labs/agentkit-opacity@0.1.0':
-    resolution: {integrity: sha512-mUExWW/NzgqdM8LzxdCyjNrxMCBg6ckrfh9pibleoxxL+M0sea/wVhPGsYDNo6oDO0HQUKvUyNGaGkAAJp8AyQ==}
+  '@layr-labs/agentkit-opacity@0.1.1':
+    resolution: {integrity: sha512-1N+8ZZjSE1KhXKMC9mXZBF+xgDGTGEB6Mt9Av5CfpFzlhDeth6HKOQ1unEp81a92HKE4mpnFu/5GArv70qm7lA==}
 
-  '@layr-labs/agentkit-witnesschain@0.1.0':
-    resolution: {integrity: sha512-3KvqUJi36uMBR+prHtm0OtQ9ZbTvvUfnA35E+Xzmh8GlQl2ooY/bM1S2sUrbLCd7nCTyHu46OyapkdF6C7UYWA==}
+  '@layr-labs/agentkit-witnesschain@0.1.1':
+    resolution: {integrity: sha512-8qfYBvmP2Rs/0kMdMdXMwZu2OLuaez5ST9M7bABTMUWDO+q+U8BNoTkb4s4MHF50PvEHmidxCii+ri1u2SgJ/g==}
 
-  '@layr-labs/agentkit@0.1.0':
-    resolution: {integrity: sha512-I/JLVmWAAOVc7yIQ3O1X58/rlSZ98PojknTOuU3apg43s7fvenyw4VIbbZivUdCL3SJ8g4QvSAs6bxIQkjj12Q==}
+  '@layr-labs/agentkit@0.1.1':
+    resolution: {integrity: sha512-jLRRmeR236TK+kY4GV0wYbH0B+ctRZ3wVhFMfdNCsT1UJ2SSBpsQk3Z4+l6EYtnsvoxmPF6SY/3Eygr0We/Huw==}
 
   '@noble/curves@1.2.0':
     resolution: {integrity: sha512-oYclrNgRaM9SsBUBVbb8M6DTV7ZHRTKugureoYEncY5c65HOmRzvSiTE3y5CYaPYJA/GVkrhXEoF0M3Ya9PMnw==}
@@ -1256,22 +1256,22 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@layr-labs/agentkit-eigenda@0.1.0(@layr-labs/agentkit@0.1.0)':
+  '@layr-labs/agentkit-eigenda@0.1.1(@layr-labs/agentkit@0.1.1)':
     dependencies:
-      '@layr-labs/agentkit': 0.1.0
+      '@layr-labs/agentkit': 0.1.1
       eigenda-sdk: 0.1.0
     transitivePeerDependencies:
       - bufferutil
       - debug
       - utf-8-validate
 
-  '@layr-labs/agentkit-opacity@0.1.0':
+  '@layr-labs/agentkit-opacity@0.1.1':
     dependencies:
-      '@layr-labs/agentkit': 0.1.0
+      '@layr-labs/agentkit': 0.1.1
 
-  '@layr-labs/agentkit-witnesschain@0.1.0':
+  '@layr-labs/agentkit-witnesschain@0.1.1':
     dependencies:
-      '@layr-labs/agentkit': 0.1.0
+      '@layr-labs/agentkit': 0.1.1
       axios: 1.7.9
       dotenv: 16.4.7
       ethers: 6.13.5
@@ -1281,7 +1281,7 @@ snapshots:
       - debug
       - utf-8-validate
 
-  '@layr-labs/agentkit@0.1.0': {}
+  '@layr-labs/agentkit@0.1.1': {}
 
   '@noble/curves@1.2.0':
     dependencies:

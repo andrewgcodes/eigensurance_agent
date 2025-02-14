@@ -1,6 +1,5 @@
 import { OpacityAdapter } from '@layr-labs/agentkit-opacity';
 import { EigenDAAdapter } from '@layr-labs/agentkit-eigenda';
-import { WitnesschainAdapter } from '@layr-labs/agentkit-witnesschain';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -10,16 +9,9 @@ export interface VerifiableResponse {
   proof: any;
 }
 
-export interface LocationVerification {
-  isValid: boolean;
-  proof: any;
-  photos?: string[];
-}
-
 export class Agent {
   private opacity: OpacityAdapter;
   private eigenDA: EigenDAAdapter;
-  private witnesschain: WitnesschainAdapter;
 
   constructor() {
     // Initialize Opacity adapter for verifiable AI inference
@@ -39,13 +31,6 @@ export class Agent {
       flushInterval: 5000, // Flush logs every 5 seconds
       maxBufferSize: 100, // Maximum number of logs to buffer
     });
-
-    // Initialize Witnesschain adapter for location verification
-    this.witnesschain = new WitnesschainAdapter(
-      process.env.WITNESSCHAIN_PHOTO_API,
-      process.env.WITNESSCHAIN_BLOCKCHAIN_API,
-      process.env.WITNESSCHAIN_PRIVATE_KEY
-    );
   }
 
   /**
@@ -89,99 +74,6 @@ export class Agent {
       await this.eigenDA.error('Text Generation Failed', { prompt, error });
       throw error;
     }
-  }
-
-  /**
-   * Verify location using Witnesschain and log to EigenDA
-   */
-  async verifyLocation(latitude: number, longitude: number, photos?: string[]): Promise<LocationVerification> {
-    try {
-      // First authenticate with the location
-      const isAuthenticated = await this.witnesschain.authenticate(latitude, longitude);
-      
-      if (!isAuthenticated) {
-        throw new Error('Location authentication failed');
-      }
-
-      // TODO: Photo verification is temporarily disabled
-      // let photoVerification: boolean | null = null;
-      // if (photos && photos.length > 0) {
-      //   const verificationResponse = await this.witnesschain.verifyPhotos(photos, 'Location verification photos');
-      //   photoVerification = verificationResponse !== null;
-      // }
-
-      // Log the verification to EigenDA
-      await this.eigenDA.info('Location Verification', {
-        coordinates: { latitude, longitude },
-        isAuthenticated,
-        // photoVerification
-      });
-
-      return {
-        isValid: isAuthenticated,
-        proof: null, // Witnesschain doesn't return a proof object directly
-        // photos: photos
-      };
-    } catch (error) {
-      await this.eigenDA.error('Location Verification Failed', {
-        coordinates: { latitude, longitude },
-        error,
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Create a new campaign on Witnesschain
-   */
-  async createCampaign(params: {
-    campaign: string;
-    description: string;
-    type: 'individual' | 'group' | 'task';
-    latitude?: number;
-    longitude?: number;
-    radius?: number;
-    bannerUrl?: string;
-    posterUrl?: string;
-    currency?: string;
-    totalRewards?: number;
-    rewardPerTask?: number;
-    fuelRequired?: number;
-    maxSubmissions?: number;
-    isActive?: boolean;
-    tags?: string[];
-  }) {
-    try {
-      const result = await this.witnesschain.createCampaign({
-        ...params,
-        starts_at: new Date().toISOString(),
-        ends_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
-      });
-
-      await this.eigenDA.info('Campaign Created', {
-        campaign: params.campaign,
-        result
-      });
-
-      return result;
-    } catch (error) {
-      await this.eigenDA.error('Campaign Creation Failed', { params, error });
-      throw error;
-    }
-  }
-
-  /**
-   * Get photos from a campaign
-   */
-  async getCampaignPhotos(campaign: string, since: string | null) {
-    return this.witnesschain.getCampaignPhotos(campaign, since);
-  }
-
-  /**
-   * Accept a photo submission
-   */
-  async acceptPhoto(photoId: string) {
-    return this.witnesschain.acceptPhoto(photoId);
   }
 
   /**

@@ -10,8 +10,8 @@ A ready-to-use scaffold that demonstrates how to build a verifiable AI agent usi
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Layr-Labs/eigenai-quickstart.git
-   cd eigenai-quickstart
+   git clone https://github.com/Layr-Labs/ai-quickstart.git
+   cd ai-quickstart
    ```
 
 2. **Install dependencies**
