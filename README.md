@@ -1,127 +1,135 @@
-# opacity-llm-quickstart 🤖
+# Eigensurance - Decentralized Wildfire Claims Verifier 🔥
+[website](https://eigensurance.vercel.app/)
+A decentralized insurance claims verification system that uses AI and cryptographic proofs to automatically verify wildfire damage claims. This project combines Web3 technology with satellite data, weather records, and property information to provide transparent and verifiable insurance claim decisions.
 
-A ready-to-use scaffold that demonstrates how to build verifiable AI inference using Opacity's zkTLS proofs. This project showcases how to generate text from LLMs with cryptographic proofs of the model's outputs.
+## 🚀 Features
 
-## 🚀 Quick Start
+- **Automated Claims Verification**: Processes wildfire insurance claims using multiple data sources
+- **Cryptographic Proof Generation**: Uses Opacity's zkTLS for verifiable AI inference
+- **Multi-Source Verification**: Checks against:
+  - Historical wildfire data
+  - Property records
+  - Weather conditions
+  - Satellite imagery
+  - Local fire reports
+- **Web3 Integration**: Handles Ethereum wallet addresses and smart contract interactions
+- **Real-time Progress Tracking**: Shows detailed verification steps with live updates
+
+## 🛠 Quick Start
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Layr-Labs/opacity-llm-quickstart.git
-   cd opacity-llm-quickstart
+   git clone https://github.com/andrewgcodes/eigensurance_agent.git
+   cd eigensurance_agent
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   pnpm install
    ```
 
 3. **Set up environment variables**
    ```bash
    cp .env.example .env
    ```
-   Then edit `.env` and fill in your API keys and configuration values:
-   - `OPACITY_OPENAI_KEY`: Your Opacity API key
-   - `OPACITY_TEAM_ID`: Your Opacity team ID
+   Configure your `.env` file with:
+   - `OPACITY_OPENAI_KEY`: For AI verification with cryptographic proofs
+   - `OPACITY_TEAM_ID`: Your Opacity team identifier
    - `OPACITY_TEAM_NAME`: Your Opacity team name
-   - `OPACITY_PROVER_URL`: URL for the Opacity prover service
+   - `OPACITY_PROVER_URL`: Opacity prover service URL
+   - `PERPLEXITY_API_KEY`: For fact-checking and data verification
+   - `PORT`: Server port (default: 3002)
 
-4. **Run the demo**
-   
-   CLI Demo:
-   ```bash
-   npm run build
-   npm start
-   ```
-
-   Express Server:
+4. **Start the server**
    ```bash
    npm run dev
    ```
 
-## 🛠 Project Structure
+## 💻 Usage
 
-```
-opacity-llm-quickstart/
-├── src/
-│   ├── agent/
-│   │   └── createAgent.ts    # Core agent implementation
-│   ├── index.ts             # CLI demo
-│   └── server.ts            # Express API
-├── package.json
-├── tsconfig.json
-└── .env.example
-```
+### Web Interface
+Access the UI at `http://localhost:3002` to:
+- Submit insurance claims with location coordinates
+- View real-time verification progress
+- Get detailed verification results with cryptographic proofs
 
-## 🔧 Usage
+### API Endpoints
 
-### CLI Demo
-
-The CLI demo showcases basic usage of verifiable text generation:
-1. Initializes the Opacity agent
-2. Generates text with a sample prompt
-3. Displays the response and associated proof
-
-Run it with:
-```bash
-npm start
-```
-
-### REST API
-
-The Express server provides the following endpoints:
-
-1. **Generate Verifiable Text**
+1. **Verify Insurance Claim**
    ```bash
-   curl -X POST http://localhost:3000/api/generate \
-     -H "Content-Type: application/json" \
-     -d '{"prompt": "What is the capital of France?"}'
+   POST /api/verify-claim
+   ```
+   Example request:
+   ```json
+   {
+     "claimId": "WF-2023-001",
+     "policyNumber": "POL-123456",
+     "claimDate": "2021-07-20",
+     "location": {
+       "latitude": 39.7392,
+       "longitude": -121.6088
+     },
+     "description": "Property damage from Dixie Fire...",
+     "estimatedDamage": 350000,
+     "walletAddress": "0x...",
+     "policyContract": "0x..."
+   }
    ```
 
 2. **Health Check**
    ```bash
-   curl http://localhost:3000/health
+   GET /health
    ```
 
-## 🔍 Core Components
+## 🔍 Verification Process
 
-### Agent Creation (`src/agent/createAgent.ts`)
+1. **Initial Verification**
+   - Validates claim details
+   - Verifies Ethereum wallet and policy contract
+   - Generates location verification hash
 
-The `createAgent.ts` file is the heart of this project. It:
-- Initializes the Opacity adapter
-- Provides methods for verifiable text generation
-- Handles error cases and proof verification
-- Includes proper TypeScript types
+2. **Data Collection**
+   - Retrieves satellite imagery
+   - Analyzes burn patterns
+   - Cross-references fire reports
+   - Validates weather conditions
+   - Verifies property records
 
-### Express Server (`src/server.ts`)
+3. **AI Analysis**
+   - Processes claim with Opacity's verifiable AI
+   - Generates cryptographic proofs
+   - Cross-references with Perplexity for fact-checking
 
-The Express server provides a REST API interface to the agent's capabilities:
-- CORS enabled
-- JSON request body parsing
-- Error handling
-- Health check endpoint
-- Clear API documentation
+4. **Decision Making**
+   - Combines all verification data
+   - Generates confidence score
+   - Provides detailed reasoning
+   - Issues final APPROVE/DENY verdict
 
-## 📝 Next Steps
+## 🏗 Project Structure
 
-Here are some ways you can extend this project:
+```
+eigensurance_agent/
+├── public/
+│   └── index.html          # Web interface
+├── src/
+│   ├── agent/
+│   │   └── createAgent.ts  # Core verification logic
+│   ├── index.ts           # CLI interface
+│   └── server.ts          # Express server
+└── .env.example           # Environment configuration
+```
 
-1. **Enhance Functionality**
-   - Add rate limiting
-   - Implement response caching
-   - Add authentication
-   - Add proof verification endpoints
+## 🔐 Security
 
-2. **Improve Developer Experience**
-   - Add tests
-   - Add CI/CD
-   - Add API documentation (Swagger/OpenAPI)
-   - Add monitoring and logging
+- Environment variables are kept secure through `.gitignore`
+- Cryptographic proofs ensure verification transparency
+- Location data is verified with SHA-256 hashing
+- Web3 integration ensures decentralized claim processing
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
 ## 📄 License
 
