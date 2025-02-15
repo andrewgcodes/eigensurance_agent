@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eigensurance - Decentralized Wildfire Claims</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-dark: #0A2647;
+            --primary-light: #144272;
+            --accent: #2C74B3;
+            --text: #ffffff;
+            --error: #ff4444;
+            --success: #00C851;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: var(--primary-light);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background-color: var(--primary-light);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            width: calc(100% - 4rem);  /* Account for padding */
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .location-inputs {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .location-input {
+            flex: 1;
+            position: relative;
+        }
+
+        .location-input input {
+            width: calc(100% - 1.6rem);
+        }
+
+        .coordinates-label {
+            font-size: 0.8rem;
+            color: var(--text);
+            opacity: 0.8;
+            margin-top: 0.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        input, textarea {
+            width: calc(100% - 1.6rem);  /* Account for padding */
+            padding: 0.8rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin-top: 0.25rem;
+        }
+
+        textarea {
+            width: calc(100% - 1.6rem);  /* Account for padding */
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--text);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .eth-input {
+            position: relative;
+        }
+
+        .eth-input::before {
+            content: "ETH";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text);
+            opacity: 0.7;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: var(--text);
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background-color: #3d85c6;
+            transform: translateY(-2px);
+        }
+
+        .result {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 6px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .crypto-verification {
+            background-color: rgba(44, 116, 179, 0.15);
+            border: 1px solid var(--accent);
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 6px;
+        }
+
+        .crypto-verification h3 {
+            color: var(--accent);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .hash-container {
+            font-family: 'Courier New', monospace;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-top: 0.5rem;
+        }
+
+        .verification-item {
+            margin-bottom: 1rem;
+        }
+
+        .verification-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .approved {
+            background-color: rgba(0, 200, 81, 0.1);
+            border: 1px solid var(--success);
+        }
+
+        .denied {
+            background-color: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--error);
+        }
+
+        .web3-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background-color: rgba(44, 116, 179, 0.1);
+            border-radius: 6px;
+            border: 1px solid var(--accent);
+            width: calc(100% - 3rem);  /* Account for padding */
+        }
+
+        .web3-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 38, 71, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .spinner-content {
+            text-align: center;
+        }
+
+        .spinner-icon {
+            font-size: 3rem;
+            color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+
+        .spinner-text {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .verified-badge {
+            background-color: var(--success);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .location-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .location-wrapper input {
+            padding-right: 2.5rem;  /* Make room for the verify button */
+            width: calc(100% - 4.1rem);  /* Account for padding and verify button */
+        }
+
+        .location-verify {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 0.5rem;
+            width: auto;
+            margin-top: 0.25rem;
+        }
+
+        .demo-notice {
+            background-color: var(--accent);
+            color: var(--text);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-notice i {
+            font-size: 1.2rem;
+        }
+
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 0.2rem;
+        }
+
+        .progress-steps {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--primary-light);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .progress-step.active {
+            opacity: 1;
+        }
+
+        .progress-step i {
+            width: 24px;
+            text-align: center;
+        }
+
+        .progress-step.completed {
+            color: var(--success);
+        }
+
+        .progress-step:last-child {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .form-col {
+                flex: 100%;
+                min-width: 100%;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+                width: calc(100% - 3rem);
+            }
+
+            input, textarea {
+                width: calc(100% - 1.6rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i> Eigensurance
+            </div>
+            <div class="subtitle">Decentralized Wildfire Insurance Claims Verification</div>
+        </div>
+
+        <form id="claimForm">
+            <div class="card">
+                <div class="demo-notice">
+                    <i class="fas fa-info-circle"></i>
+                    Demo Mode: Form is pre-filled with sample data for testing purposes
+                </div>
+
+                <div class="web3-section">
+                    <div class="web3-title"><i class="fab fa-ethereum"></i> Web3 Details</div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="walletAddress">Ethereum Wallet Address:</label>
+                            <input type="text" id="walletAddress" placeholder="0x..." required pattern="^0x[a-fA-F0-9]{40}$" 
+                                value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e">
+                        </div>
+                        <div class="form-col">
+                            <label for="policyContract">Insurance Policy Contract:</label>
+                            <input type="text" id="policyContract" placeholder="0x..." required pattern="^0x[a-fA-F0-9]{40}$"
+                                value="0x8C961f8f8B8b37432f3d8D15b6A1339b25736FF0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="claimId">Claim ID:</label>
+                        <input type="text" id="claimId" required value="WF-2023-DEMO-001">
+                    </div>
+                    <div class="form-col">
+                        <label for="policyNumber">Policy Number:</label>
+                        <input type="text" id="policyNumber" required value="POL-EIGEN-123456">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <label for="claimDate">Claim Date:</label>
+                        <input type="date" id="claimDate" required value="2021-07-20">
+                    </div>
+                    <div class="form-col">
+                        <label for="latitude">Location: <span id="locationVerified" class="verified-badge" style="display: none;">
+                            <i class="fas fa-check-circle"></i> Verified
+                            <span class="hash-display"></span>
+                        </span></label>
+                        <div class="location-inputs">
+                            <div class="location-input">
+                                <input type="number" id="latitude" placeholder="Latitude" required step="0.000001"
+                                    value="39.7392" min="-90" max="90">
+                                <div class="coordinates-label">Latitude (e.g., 39.7392)</div>
+                            </div>
+                            <div class="location-input">
+                                <input type="number" id="longitude" placeholder="Longitude" required step="0.000001"
+                                    value="-121.6088" min="-180" max="180">
+                                <div class="coordinates-label">Longitude (e.g., -121.6088)</div>
+                            </div>
+                            <button type="button" class="location-verify" onclick="verifyLocation()">
+                                <i class="fas fa-satellite"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Damage Description:</label>
+                    <textarea id="description" rows="4" placeholder="Describe the wildfire damage to your property..." required>Partial damage to property from Dixie Fire. Significant smoke damage and destruction of outbuildings. Main structure partially damaged.</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="estimatedDamage">Estimated Damage ($):</label>
+                    <input type="number" id="estimatedDamage" required min="0" step="1000" value="350000">
+                </div>
+
+                <button type="submit">
+                    <i class="fas fa-file-signature"></i>
+                    Submit Claim
+                </button>
+            </div>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <div id="spinner" class="spinner">
+        <div class="spinner-content">
+            <i class="fas fa-circle-notch spinner-icon"></i>
+            <div class="spinner-text">Verifying claim on-chain...</div>
+        </div>
+    </div>
+
+    <div id="progressSteps" class="progress-steps">
+        <div class="progress-step" data-step="init">
+            <i class="fas fa-plug"></i>
+            <span>Initializing Smart Contract Connection</span>
+        </div>
+        <div class="progress-step" data-step="satellite">
+            <i class="fas fa-satellite"></i>
+            <span>Retrieving Satellite Imagery</span>
+        </div>
+        <div class="progress-step" data-step="analyze">
+            <i class="fas fa-microscope"></i>
+            <span>Analyzing Burn Patterns</span>
+        </div>
+        <div class="progress-step" data-step="fire">
+            <i class="fas fa-fire"></i>
+            <span>Cross-referencing Fire Reports</span>
+        </div>
+        <div class="progress-step" data-step="weather">
+            <i class="fas fa-cloud-sun"></i>
+            <span>Validating Weather Conditions</span>
+        </div>
+        <div class="progress-step" data-step="property">
+            <i class="fas fa-home"></i>
+            <span>Verifying Property Records</span>
+        </div>
+        <div class="progress-step" data-step="damage">
+            <i class="fas fa-chart-bar"></i>
+            <span>Assessing Damage Estimates</span>
+        </div>
+        <div class="progress-step" data-step="contract">
+            <i class="fas fa-file-contract"></i>
+            <span>Validating Policy Terms</span>
+        </div>
+        <div class="progress-step" data-step="proof">
+            <i class="fas fa-shield-alt"></i>
+            <span>Generating Zero-Knowledge Proof</span>
+        </div>
+    </div>
+
+    <script>
+        // Simulated location verification using SHA-256
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        }
+
+        async function verifyLocation() {
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+            const verifiedBadge = document.getElementById('locationVerified');
+            const spinner = document.getElementById('spinner');
+            
+            spinner.style.display = 'flex';
+            spinner.querySelector('.spinner-text').textContent = 'Verifying coordinates...';
+
+            try {
+                // Simulate quick coordinate verification
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                // Generate verification hash
+                const timestamp = new Date().toISOString();
+                const hash = await sha256(`${latitude},${longitude}-${timestamp}`);
+                
+                verifiedBadge.style.display = 'inline-flex';
+                verifiedBadge.querySelector('.hash-display').textContent = `#${hash.slice(0, 8)}`;
+                
+                document.getElementById('claimForm').dataset.locationHash = hash;
+            } catch (error) {
+                console.error('Location verification failed:', error);
+                alert('Location verification failed. Please try again.');
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Auto-verify location on page load for demo
+        setTimeout(verifyLocation, 1000);
+
+        // Simulated verification steps with random progress messages
+        async function simulateVerificationStep(step, delay) {
+            const stepElement = document.querySelector(`.progress-step[data-step="${step}"]`);
+            stepElement.classList.add('active');
+
+            // Add random progress messages for each step
+            const messages = {
+                init: [
+                    'Connecting to Ethereum network...',
+                    'Initializing Web3 provider...',
+                    'Loading smart contract...'
+                ],
+                satellite: [
+                    'Requesting LANDSAT-8 imagery...',
+                    'Processing thermal bands...',
+                    'Analyzing vegetation indices...'
+                ],
+                analyze: [
+                    'Detecting burn scars...',
+                    'Calculating burn severity...',
+                    'Mapping affected areas...'
+                ],
+                fire: [
+                    'Querying NIFC database...',
+                    'Checking local fire reports...',
+                    'Validating incident records...'
+                ],
+                weather: [
+                    'Retrieving historical data...',
+                    'Analyzing wind patterns...',
+                    'Checking drought conditions...'
+                ],
+                property: [
+                    'Verifying ownership records...',
+                    'Checking property boundaries...',
+                    'Validating insurance coverage...'
+                ],
+                damage: [
+                    'Processing damage assessment...',
+                    'Comparing market values...',
+                    'Validating claim amounts...'
+                ],
+                contract: [
+                    'Reading policy terms...',
+                    'Checking coverage limits...',
+                    'Validating claim eligibility...'
+                ],
+                proof: [
+                    'Generating cryptographic proof...',
+                    'Verifying zero-knowledge circuit...',
+                    'Publishing proof on-chain...'
+                ]
+            };
+
+            const updateSpinnerText = (text) => {
+                document.querySelector('.spinner-text').textContent = text;
+            };
+
+            // Show progress messages for each step
+            for (const message of messages[step]) {
+                updateSpinnerText(message);
+                await new Promise(resolve => setTimeout(resolve, delay / 3));
+            }
+
+            stepElement.classList.add('completed');
+        }
+
+        document.getElementById('claimForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const spinner = document.getElementById('spinner');
+            const progressSteps = document.getElementById('progressSteps');
+            
+            // Reset progress steps
+            document.querySelectorAll('.progress-step').forEach(step => {
+                step.classList.remove('active', 'completed');
+            });
+            
+            spinner.style.display = 'flex';
+            progressSteps.style.display = 'block';
+            
+            const claim = {
+                claimId: document.getElementById('claimId').value,
+                policyNumber: document.getElementById('policyNumber').value,
+                claimDate: document.getElementById('claimDate').value,
+                location: {
+                    latitude: parseFloat(document.getElementById('latitude').value),
+                    longitude: parseFloat(document.getElementById('longitude').value)
+                },
+                description: document.getElementById('description').value,
+                estimatedDamage: Number(document.getElementById('estimatedDamage').value),
+                walletAddress: document.getElementById('walletAddress').value,
+                policyContract: document.getElementById('policyContract').value,
+                locationVerificationHash: e.target.dataset.locationHash || null
+            };
+
+            let verificationComplete = false;
+            let result = null;
+            let error = null;
+
+            // Start both processes in parallel
+            try {
+                // Process 1: Actual verification API call
+                const verificationPromise = fetch('/api/verify-claim', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(claim)
+                }).then(response => response.json());
+
+                // Process 2: Progress steps animation
+                const progressPromise = (async () => {
+                    const steps = ['init', 'satellite', 'analyze', 'fire', 'weather', 
+                                 'property', 'damage', 'contract', 'proof'];
+                    const stepDurations = {
+                        init: 3000, satellite: 4000, analyze: 3500, fire: 3000,
+                        weather: 3500, property: 3000, damage: 3500, contract: 3000,
+                        proof: 4000
+                    };
+
+                    for (const step of steps) {
+                        // If verification is complete, speed up remaining steps
+                        const duration = verificationComplete ? 500 : stepDurations[step];
+                        await simulateVerificationStep(step, duration);
+                        
+                        // If this is the last step and verification is done, break
+                        if (verificationComplete && step === 'proof') break;
+                    }
+                })();
+
+                // Wait for verification to complete
+                result = await verificationPromise;
+                verificationComplete = true;
+
+                // Ensure progress animation has finished
+                await progressPromise;
+
+            } catch (err) {
+                error = err;
+                console.error('Error:', err);
+            } finally {
+                spinner.style.display = 'none';
+                progressSteps.style.display = 'none';
+
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+
+                if (error) {
+                    resultDiv.className = 'result denied';
+                    resultDiv.innerHTML = `
+                        <h2><i class="fas fa-exclamation-circle"></i> Error</h2>
+                        <p>Failed to verify claim: ${error.message}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result ' + (result.verdict === 'APPROVE' ? 'approved' : 'denied');
+                    let content = `<h2><i class="${result.verdict === 'APPROVE' ? 'fas fa-check-circle' : 'fas fa-times-circle'}"></i> Verification Result: ${result.verdict}</h2>`;
+                    content += `<p><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</p>`;
+                    content += `<p><strong>Reason:</strong> ${result.reason}</p>`;
+                    
+                    if (result.verificationData) {
+                        content += '<div class="crypto-verification">';
+                        content += '<h3><i class="fas fa-shield-alt"></i> Cryptographic Verifications</h3>';
+                        
+                        // Location verification
+                        content += '<div class="verification-item">';
+                        content += '<strong>Location Verification Hash:</strong>';
+                        content += `<div class="hash-container">${claim.locationVerificationHash || 'Not verified'}</div>`;
+                        content += '</div>';
+                        
+                        // Opacity proof
+                        content += '<div class="verification-item">';
+                        content += '<strong>Opacity zkTLS Proof:</strong>';
+                        if (result.proof) {
+                            content += `<div class="hash-container">${JSON.stringify(result.proof, null, 2)}</div>`;
+                        } else {
+                            content += '<div class="hash-container">Proof generation pending or failed</div>';
+                        }
+                        content += '</div>';
+                        
+                        content += '</div>';
+                        
+                        content += '<h3>Additional Verification Details:</h3>';
+                        content += '<pre>' + JSON.stringify(result.verificationData, null, 2) + '</pre>';
+                    }
+
+                    resultDiv.innerHTML = content;
+                }
+            }
+        });
+    </script>
+</body>
+</html> 

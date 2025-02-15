@@ -1,7 +1,12 @@
 import express from 'express';
 import cors from 'cors';
-import { createAgent } from './agent/createAgent.js';
+import { createAgent, InsuranceClaim } from './agent/createAgent.js';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -22,42 +27,63 @@ createAgent().then(a => {
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', agentReady: !!agent });
 });
 
-// Generate verifiable text endpoint
-app.post('/api/generate', async (req, res) => {
+// Verify insurance claim endpoint
+app.post('/api/verify-claim', async (req, res) => {
   try {
     if (!agent) {
       return res.status(503).json({ error: 'Agent not ready' });
     }
 
-    const { prompt } = req.body;
+    const claim: InsuranceClaim = req.body;
     
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+    // Validate required fields
+    const requiredFields: (keyof InsuranceClaim)[] = [
+      'claimId',
+      'policyNumber',
+      'claimDate',
+      'location',
+      'description',
+      'estimatedDamage'
+    ];
+
+    const missingFields = requiredFields.filter(field => !claim[field]);
+    if (missingFields.length > 0) {
+      return res.status(400).json({ 
+        error: 'Missing required fields', 
+        missingFields 
+      });
     }
 
-    console.log('Generating text for prompt:', prompt);
-    const result = await agent.generateVerifiableText(prompt);
-    console.log('Generation result:', result);
+    console.log('Verifying claim:', claim.claimId);
+    const result = await agent.verifyInsuranceClaim(claim);
+    console.log('Verification result:', result);
     res.json(result);
   } catch (error) {
-    console.error('Error generating text:', error);
+    console.error('Error verifying claim:', error);
     res.status(500).json({ 
-      error: 'Failed to generate text',
+      error: 'Failed to verify claim',
       details: error instanceof Error ? error.message : String(error)
     });
   }
+});
+
+// Serve the frontend
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Start server
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
   console.log('Available endpoints:');
+  console.log('  GET  /         (Frontend UI)');
   console.log('  GET  /health');
-  console.log('  POST /api/generate');
+  console.log('  POST /api/verify-claim');
 }); 
